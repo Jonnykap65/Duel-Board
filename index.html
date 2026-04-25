@@ -1,0 +1,1428 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duel Board - Yu-Gi-Oh! Tools</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050913;
+      --panel: rgba(10, 18, 34, 0.82);
+      --panel-strong: rgba(12, 24, 46, 0.94);
+      --line: rgba(147, 202, 255, 0.20);
+      --line-hot: rgba(40, 215, 255, 0.66);
+      --text: #f4f5ff;
+      --muted: #aeb4d7;
+      --soft: #777f9f;
+      --cyan: #28d7ff;
+      --blue: #2f8cff;
+      --gold: #f6c15c;
+      --green: #45dd98;
+      --danger: #ff6b6b;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.52);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(4, 16, 36, 0.50), rgba(3, 8, 20, 0.95)),
+        radial-gradient(circle at 76% 12%, rgba(40, 215, 255, 0.16), transparent 32%),
+        radial-gradient(circle at 12% 86%, rgba(47, 140, 255, 0.18), transparent 34%),
+        url("assets/duel-dashboard-bg.png") center / cover fixed,
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button, .button-link {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.035));
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
+    }
+
+    button:hover, .button-link:hover {
+      border-color: var(--line-hot);
+      transform: translateY(-1px);
+      background: linear-gradient(180deg, rgba(47, 140, 255, 0.24), rgba(40, 215, 255, 0.10));
+    }
+
+    button.primary {
+      border-color: rgba(40, 215, 255, 0.54);
+      background: linear-gradient(135deg, rgba(40, 215, 255, 0.24), rgba(47, 140, 255, 0.28));
+    }
+
+    button.danger {
+      border-color: rgba(255, 107, 107, 0.42);
+      color: #ffd7d7;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(6, 8, 18, 0.76);
+      color: var(--text);
+      border-radius: 8px;
+      min-height: 40px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(40, 215, 255, 0.12);
+    }
+
+    .app {
+      width: min(1480px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4.4vw, 5rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 0 0 32px rgba(40, 215, 255, 0.46);
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .source-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr) 380px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(47, 140, 255, 0.20), rgba(40, 215, 255, 0.06));
+    }
+
+    .panel-header h2, .panel-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .row > * {
+      min-width: 0;
+    }
+
+    .center-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .center-tab {
+      color: var(--muted);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .center-tab.active {
+      color: var(--text);
+      border-color: var(--cyan);
+      background: linear-gradient(135deg, rgba(40, 215, 255, 0.20), rgba(47, 140, 255, 0.18));
+    }
+
+    .center-view {
+      display: none;
+    }
+
+    .center-view.active {
+      display: block;
+    }
+
+    .zone-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+
+    .zone-tab {
+      min-height: 34px;
+      color: var(--muted);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .zone-tab.active {
+      color: var(--text);
+      border-color: var(--cyan);
+      background: linear-gradient(135deg, rgba(40, 215, 255, 0.20), rgba(47, 140, 255, 0.18));
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: rgba(4, 7, 16, 0.56);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 86px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 1.7rem;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    .deck-list, .notes-list, .watch-list {
+      display: grid;
+      gap: 8px;
+      max-height: 460px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .deck-item, .note-item, .watch-item, .card-row {
+      border: 1px solid var(--line);
+      background: rgba(6, 8, 18, 0.58);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .deck-item {
+      cursor: pointer;
+    }
+
+    .deck-item-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .deck-remove {
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 0.78rem;
+    }
+
+    .deck-item.active {
+      border-color: var(--cyan);
+      background: rgba(40, 215, 255, 0.12);
+    }
+
+    .deck-item strong, .note-item strong, .watch-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .tiny {
+      color: var(--soft);
+      font-size: 0.78rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .right-col .grid-2, .right-col .grid-3 {
+      grid-template-columns: 1fr;
+    }
+
+    .card-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .card-table th, .card-table td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .card-table th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .card-table td:last-child, .card-table th:last-child {
+      text-align: right;
+    }
+
+    .qty {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .prob-result {
+      display: grid;
+      gap: 10px;
+      border: 1px solid rgba(40, 215, 255, 0.34);
+      background: linear-gradient(135deg, rgba(40, 215, 255, 0.12), rgba(47, 140, 255, 0.14));
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .prob-result b {
+      display: block;
+      font-size: clamp(2.2rem, 4vw, 3.35rem);
+      line-height: 1;
+      letter-spacing: 0;
+      color: var(--cyan);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 22px rgba(40, 215, 255, 0.24);
+    }
+
+    .prob-kicker {
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hand-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(4, 7, 16, 0.48);
+    }
+
+    .hand-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hand-status {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hand-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .hand-card {
+      min-height: 74px;
+      border: 1px solid rgba(40, 215, 255, 0.24);
+      background:
+        linear-gradient(90deg, rgba(40, 215, 255, 0.13), rgba(47, 140, 255, 0.08) 48%, rgba(4, 10, 22, 0.76)),
+        rgba(6, 12, 24, 0.74);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 14px 34px rgba(0, 0, 0, 0.24);
+    }
+
+    .hand-card::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .hand-card-top {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .hand-card-name {
+      position: relative;
+    }
+
+    .hand-card strong {
+      display: block;
+      font-size: 0.98rem;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .hand-index {
+      color: var(--gold);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hand-empty {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 26px 18px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(4, 7, 16, 0.40);
+    }
+
+    .hand-empty strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .copy-area {
+      min-height: 280px;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 0.88rem;
+    }
+
+    .note-body {
+      white-space: pre-wrap;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .status {
+      min-height: 22px;
+      color: var(--green);
+      font-size: 0.86rem;
+    }
+
+    .about-copy {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .about-copy p {
+      margin: 0;
+    }
+
+    .about-copy a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .about-copy a:hover {
+      text-decoration: underline;
+    }
+
+    .split-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 10px;
+    }
+
+    .split-title h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 14px 0;
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 310px minmax(0, 1fr);
+      }
+
+      .right-col {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        width: 100%;
+        max-width: 100vw;
+        padding: 22px 7px 34px;
+      }
+
+      .topbar, .layout, .right-col, .metric-grid, .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .hand-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header, .row {
+        flex-wrap: wrap;
+      }
+
+      .row > input, .row > select, .row > textarea {
+        flex: 1 1 190px;
+        width: auto;
+      }
+
+      .row > button, .row > .button-link {
+        flex: 1 1 auto;
+        width: auto;
+      }
+
+      .source-strip {
+        justify-content: flex-start;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Duel Board</h1>
+        <p>Deck tracking, opening-hand math, matchup notes, and tools in one Yu-Gi-Oh! application.</p>
+      </div>
+      <nav class="source-strip" aria-label="Official database links">
+        <a class="button-link" href="https://www.db.yugioh-card.com/yugiohdb/?request_locale=en" target="_blank" rel="noreferrer">Official DB</a>
+        <a class="button-link" href="https://www.db.yugioh-card.com/yugiohdb/card_search.action?wname=CardSearch&request_locale=en" target="_blank" rel="noreferrer">Card Search</a>
+        <a class="button-link" href="https://www.db.yugioh-card.com/yugiohdb/deck_search.action?request_locale=en" target="_blank" rel="noreferrer">Deck Search</a>
+        <a class="button-link" href="https://www.db.yugioh-card.com/yugiohdb/forbidden_limited.action?request_locale=en" target="_blank" rel="noreferrer">F/L List</a>
+      </nav>
+    </header>
+
+    <section class="layout">
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Deck Tracker</h2>
+            <span class="pill" id="deckCount">0 decks</span>
+          </div>
+          <div class="panel-body stack">
+            <div class="row">
+              <input id="newDeckName" placeholder="Deck name">
+              <button class="primary" id="addDeckBtn">Add</button>
+            </div>
+            <div class="deck-list" id="deckList"></div>
+            <div class="divider"></div>
+            <button id="seedBtn">Load Sample Deck</button>
+            <label class="button-link" for="importFile">Import JSON / YDK</label>
+            <input id="importFile" type="file" accept="application/json,.json,.ydk" hidden>
+            <div class="tiny">YDK imports create a new deck from passcodes and resolve card names when online lookup is available.</div>
+            <div class="status" id="deckStatus"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Quick Checks</h3>
+            <span class="pill">Local</span>
+          </div>
+          <div class="panel-body stack">
+            <div class="card-row">
+              <strong>Main deck target</strong>
+              <div class="muted" id="mainAdvice">Add 40-60 main deck cards.</div>
+            </div>
+            <div class="card-row">
+              <strong>Extra deck target</strong>
+              <div class="muted" id="extraAdvice">Up to 15 extra deck cards.</div>
+            </div>
+            <div class="card-row">
+              <strong>Side deck target</strong>
+              <div class="muted" id="sideAdvice">Up to 15 side deck cards.</div>
+            </div>
+            <div class="card-row">
+              <strong>Source</strong>
+              <div class="muted">Official card data, rulings, Deck Search, and the Forbidden/Limited List should be confirmed through Konami before events.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>About</h3>
+            <span class="pill">Free Fan Tool</span>
+          </div>
+          <div class="panel-body about-copy">
+            <p>Duel Board was created by Jon Kaplan as a free local companion tool for Yu-Gi-Oh! Trading Card Game deck tracking, opening-hand math, matchup notes, and quick access to official resources.</p>
+            <p>This app is distributed for personal, non-commercial use only. It is not for sale, not an official product, and is not affiliated with, sponsored by, approved by, or endorsed by Konami, Studio Dice, SHUEISHA, TV TOKYO, or any Yu-Gi-Oh! rights holder.</p>
+            <p>Yu-Gi-Oh!, the Yu-Gi-Oh! Trading Card Game, card names, artwork, logos, and related trademarks and copyrights are the property of their respective owners. Official card data, tournament policy, Forbidden/Limited status, and rulings should be verified through the <a href="https://www.db.yugioh-card.com/yugiohdb/?request_locale=en" target="_blank" rel="noreferrer">Konami Yu-Gi-Oh! Card Database</a> and official Konami sources before events.</p>
+            <p>Copyright notices referenced by official Yu-Gi-Oh! sources include ©1996 Kazuki Takahashi and ©2020 Studio Dice / SHUEISHA, TV TOKYO, KONAMI. This app does not claim ownership of Yu-Gi-Oh! intellectual property.</p>
+          </div>
+        </section>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 id="activeDeckTitle">No Deck Selected</h2>
+          <span class="pill" id="deckTotals">Main 0 / Extra 0 / Side 0</span>
+        </div>
+        <div class="panel-body">
+          <div class="center-tabs" role="tablist" aria-label="Deck tools">
+            <button class="center-tab active" data-center-view="deckEditorView">Deck</button>
+            <button class="center-tab" data-center-view="testHandView">Test Hand</button>
+          </div>
+
+          <div class="center-view active" id="deckEditorView">
+            <div class="metric-grid">
+              <div class="metric"><b id="mainCount">0</b><span>Main Deck</span></div>
+              <div class="metric"><b id="extraCount">0</b><span>Extra Deck</span></div>
+              <div class="metric"><b id="sideCount">0</b><span>Side Deck</span></div>
+              <div class="metric"><b id="uniqueCount">0</b><span>Unique Cards</span></div>
+            </div>
+            <div class="divider"></div>
+            <div class="zone-tabs" role="tablist" aria-label="Deck zones">
+              <button class="zone-tab active" data-zone="Main">Main Deck</button>
+              <button class="zone-tab" data-zone="Extra">Extra Deck</button>
+              <button class="zone-tab" data-zone="Side">Side Deck</button>
+            </div>
+            <div class="grid-3">
+              <input id="cardName" placeholder="Card name">
+              <input id="cardQty" type="number" min="1" max="3" value="1" aria-label="Quantity">
+              <input id="activeZoneLabel" value="Main Deck" aria-label="Active deck zone" readonly>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+              <button class="primary" id="addCardBtn">Add Card</button>
+              <button id="clearDeckBtn" class="danger">Clear Active Deck</button>
+            </div>
+            <div class="divider"></div>
+            <table class="card-table">
+              <thead>
+                <tr><th>Card</th><th>Zone</th><th>Qty</th><th></th></tr>
+              </thead>
+              <tbody id="cardTable"></tbody>
+            </table>
+          </div>
+
+          <div class="center-view" id="testHandView">
+            <div class="hand-actions">
+              <div class="hand-buttons">
+                <button class="primary" id="drawHandBtn">Draw 5 Cards</button>
+                <button id="clearHandBtn">Clear Hand</button>
+              </div>
+              <div class="hand-status">
+                <span class="pill" id="handSource">Main deck only</span>
+                <span class="pill" id="handStatus">No hand drawn</span>
+              </div>
+            </div>
+            <div class="hand-grid" id="testHandGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right-col">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Probability</h3>
+            <span class="pill">Opening Hand</span>
+          </div>
+          <div class="panel-body">
+            <div class="grid-3">
+              <label>Deck Size<input id="probDeckSize" type="number" min="1" value="40"></label>
+              <label>Copies / Targets<input id="probTargets" type="number" min="0" value="3"></label>
+              <label>Cards Drawn<input id="probDraws" type="number" min="1" value="5"></label>
+            </div>
+            <div class="grid-3" style="margin-top: 12px;">
+              <label>At Least<input id="probAtLeast" type="number" min="1" value="1"></label>
+              <label>Extra Targets<input id="probTargetsB" type="number" min="0" value="0"></label>
+              <label>Mode
+                <select id="probMode">
+                  <option value="atleast">Open at least N of target A</option>
+                  <option value="both">Open target A and target B</option>
+                  <option value="brick">Avoid target A</option>
+                </select>
+              </label>
+            </div>
+            <div class="divider"></div>
+            <div class="prob-result">
+              <div>
+                <span class="prob-kicker">Opening Odds</span>
+                <div class="muted" id="probSummary">Opening odds</div>
+                <div class="tiny" id="probDetail">Uses exact hypergeometric probability.</div>
+              </div>
+              <b id="probValue">0%</b>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Notes</h3>
+          </div>
+          <div class="panel-body">
+            <textarea id="matchupText" placeholder="Side plan, choke points, cards to respect, going first/second notes"></textarea>
+            <div class="row" style="margin-top: 10px;">
+              <button class="primary" id="saveNoteBtn">Save Note</button>
+              <button id="clearNoteBtn">Clear Form</button>
+            </div>
+            <div class="divider"></div>
+            <div class="notes-list" id="notesList"></div>
+          </div>
+        </section>
+
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const DB_HOME = "https://www.db.yugioh-card.com/yugiohdb/?request_locale=en";
+    const DB_SEARCH = "https://www.db.yugioh-card.com/yugiohdb/card_search.action?wname=CardSearch&request_locale=en";
+    const STORAGE_KEY = "duel-board-v1";
+    const CARD_CACHE_KEY = "duel-board-card-name-cache-v1";
+    const CARD_INFO_API = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
+
+    const state = loadState();
+    let selectedDeckId = state.decks[0]?.id || null;
+    let editingNoteId = null;
+    let currentHand = [];
+    let activeDeckZone = "Main";
+
+    const $ = (id) => document.getElementById(id);
+
+    const els = {
+      deckList: $("deckList"),
+      deckCount: $("deckCount"),
+      newDeckName: $("newDeckName"),
+      activeDeckTitle: $("activeDeckTitle"),
+      deckTotals: $("deckTotals"),
+      cardTable: $("cardTable"),
+      activeZoneLabel: $("activeZoneLabel"),
+      mainCount: $("mainCount"),
+      extraCount: $("extraCount"),
+      sideCount: $("sideCount"),
+      uniqueCount: $("uniqueCount"),
+      deckStatus: $("deckStatus"),
+      probDeckSize: $("probDeckSize"),
+      probTargets: $("probTargets"),
+      probDraws: $("probDraws"),
+      probAtLeast: $("probAtLeast"),
+      probTargetsB: $("probTargetsB"),
+      probMode: $("probMode"),
+      probValue: $("probValue"),
+      probSummary: $("probSummary"),
+      probDetail: $("probDetail"),
+      notesList: $("notesList"),
+      testHandGrid: $("testHandGrid"),
+      handSource: $("handSource"),
+      handStatus: $("handStatus")
+    };
+
+    document.querySelectorAll(".center-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".center-tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".center-view").forEach((view) => view.classList.remove("active"));
+        tab.classList.add("active");
+        $(tab.dataset.centerView).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".zone-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        activeDeckZone = tab.dataset.zone;
+        document.querySelectorAll(".zone-tab").forEach((item) => item.classList.remove("active"));
+        tab.classList.add("active");
+        renderActiveDeck();
+      });
+    });
+
+    $("addDeckBtn").addEventListener("click", addDeck);
+    $("seedBtn").addEventListener("click", seedDeck);
+    $("importFile").addEventListener("change", importData);
+    $("addCardBtn").addEventListener("click", addCardFromForm);
+    $("clearDeckBtn").addEventListener("click", clearActiveDeck);
+    $("drawHandBtn").addEventListener("click", drawTestHand);
+    $("clearHandBtn").addEventListener("click", clearTestHand);
+    $("saveNoteBtn").addEventListener("click", saveNote);
+    $("clearNoteBtn").addEventListener("click", clearNoteForm);
+
+    ["probDeckSize", "probTargets", "probDraws", "probAtLeast", "probTargetsB", "probMode"].forEach((id) => {
+      $(id).addEventListener("input", renderProbability);
+    });
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (parsed && Array.isArray(parsed.decks)) return parsed;
+      } catch {}
+      return { decks: [], notes: [], watch: [] };
+    }
+
+    function persist(message) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (message) {
+        els.deckStatus.textContent = message;
+        setTimeout(() => {
+          if (els.deckStatus.textContent === message) els.deckStatus.textContent = "";
+        }, 2400);
+      }
+    }
+
+    function uid(prefix) {
+      return prefix + "-" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+    }
+
+    function activeDeck() {
+      return state.decks.find((deck) => deck.id === selectedDeckId) || null;
+    }
+
+    function addDeck() {
+      const name = els.newDeckName.value.trim();
+      if (!name) return;
+      const deck = { id: uid("deck"), name, cards: [] };
+      state.decks.push(deck);
+      selectedDeckId = deck.id;
+      currentHand = [];
+      els.newDeckName.value = "";
+      persist("Deck added.");
+      render();
+    }
+
+    function seedDeck() {
+      const deck = {
+        id: uid("deck"),
+        name: "Sample Hand Trap Core",
+        cards: [
+          { name: "Ash Blossom & Joyous Spring", qty: 3, zone: "Main" },
+          { name: "Maxx \"C\"", qty: 3, zone: "Main" },
+          { name: "Infinite Impermanence", qty: 3, zone: "Main" },
+          { name: "Called by the Grave", qty: 1, zone: "Main" },
+          { name: "Crossout Designator", qty: 1, zone: "Main" },
+          { name: "Triple Tactics Talent", qty: 2, zone: "Main" },
+          { name: "S:P Little Knight", qty: 1, zone: "Extra" },
+          { name: "Accesscode Talker", qty: 1, zone: "Extra" },
+          { name: "Droll & Lock Bird", qty: 3, zone: "Side" }
+        ]
+      };
+      state.decks.push(deck);
+      selectedDeckId = deck.id;
+      currentHand = [];
+      persist("Sample deck loaded.");
+      render();
+    }
+
+    function addCardFromForm() {
+      const name = $("cardName").value.trim();
+      const qty = Number($("cardQty").value) || 1;
+      addCard(name, qty, activeDeckZone);
+      $("cardName").value = "";
+      $("cardQty").value = 1;
+    }
+
+    function addCard(name, qty, zone) {
+      const deck = activeDeck();
+      if (!deck || !name) return;
+      const existing = deck.cards.find((card) => card.name.toLowerCase() === name.toLowerCase() && card.zone === zone);
+      if (existing) existing.qty += qty;
+      else deck.cards.push({ name, qty, zone });
+      sortCards(deck.cards);
+      currentHand = [];
+      persist("Card added.");
+      render();
+    }
+
+    function removeCard(card) {
+      const deck = activeDeck();
+      if (!deck) return;
+      const index = deck.cards.indexOf(card);
+      if (index < 0) return;
+      deck.cards.splice(index, 1);
+      currentHand = [];
+      persist("Card removed.");
+      render();
+    }
+
+    function clearActiveDeck() {
+      const deck = activeDeck();
+      if (!deck) return;
+      deck.cards = [];
+      currentHand = [];
+      persist("Deck cleared.");
+      render();
+    }
+
+    function removeDeck(deckId) {
+      const deck = state.decks.find((item) => item.id === deckId);
+      if (!deck) return;
+      if (!confirm(`Remove "${deck.name}" from Deck Tracker?`)) return;
+      state.decks = state.decks.filter((item) => item.id !== deckId);
+      state.notes = state.notes.filter((note) => note.deckId !== deckId);
+      if (selectedDeckId === deckId) selectedDeckId = state.decks[0]?.id || null;
+      currentHand = [];
+      persist("Deck removed.");
+      render();
+    }
+
+    function sortCards(cards) {
+      const order = { Main: 0, Extra: 1, Side: 2 };
+      cards.sort((a, b) => order[a.zone] - order[b.zone] || a.name.localeCompare(b.name));
+    }
+
+    function counts(deck) {
+      const countZone = (zone) => deck ? deck.cards.filter((card) => card.zone === zone).reduce((sum, card) => sum + Number(card.qty || 0), 0) : 0;
+      return {
+        main: countZone("Main"),
+        extra: countZone("Extra"),
+        side: countZone("Side"),
+        unique: deck ? new Set(deck.cards.map((card) => card.name.toLowerCase())).size : 0
+      };
+    }
+
+    function render() {
+      renderDeckList();
+      renderActiveDeck();
+      renderProbability();
+      renderNotes();
+      renderTestHand();
+    }
+
+    function renderDeckList() {
+      els.deckCount.textContent = `${state.decks.length} deck${state.decks.length === 1 ? "" : "s"}`;
+      els.deckList.innerHTML = state.decks.length ? "" : `<div class="muted">Create a deck or load the sample to begin.</div>`;
+      state.decks.forEach((deck) => {
+        const c = counts(deck);
+        const item = document.createElement("div");
+        item.className = "deck-item" + (deck.id === selectedDeckId ? " active" : "");
+        item.innerHTML = `
+          <div class="deck-item-header">
+            <div>
+              <strong>${escapeHtml(deck.name)}</strong>
+              <span class="muted">Main ${c.main} / Extra ${c.extra} / Side ${c.side}</span>
+            </div>
+            <button class="danger deck-remove" aria-label="Remove ${escapeHtml(deck.name)}">Remove</button>
+          </div>
+        `;
+        item.addEventListener("click", () => {
+          selectedDeckId = deck.id;
+          currentHand = [];
+          render();
+        });
+        item.querySelector(".deck-remove").addEventListener("click", (event) => {
+          event.stopPropagation();
+          removeDeck(deck.id);
+        });
+        els.deckList.appendChild(item);
+      });
+    }
+
+    function renderActiveDeck() {
+      const deck = activeDeck();
+      const c = counts(deck);
+      els.activeDeckTitle.textContent = deck ? deck.name : "No Deck Selected";
+      els.deckTotals.textContent = `Main ${c.main} / Extra ${c.extra} / Side ${c.side}`;
+      els.mainCount.textContent = c.main;
+      els.extraCount.textContent = c.extra;
+      els.sideCount.textContent = c.side;
+      els.uniqueCount.textContent = c.unique;
+      document.querySelector('[data-zone="Main"]').textContent = `Main Deck (${c.main})`;
+      document.querySelector('[data-zone="Extra"]').textContent = `Extra Deck (${c.extra})`;
+      document.querySelector('[data-zone="Side"]').textContent = `Side Deck (${c.side})`;
+      els.activeZoneLabel.value = `${activeDeckZone} Deck`;
+      els.probDeckSize.value = c.main || els.probDeckSize.value || 40;
+      $("mainAdvice").textContent = c.main < 40 ? `${40 - c.main} more cards to reach 40.` : c.main <= 60 ? "Main deck is within the usual 40-60 range." : `${c.main - 60} cards above 60.`;
+      $("extraAdvice").textContent = c.extra <= 15 ? `${15 - c.extra} extra deck slots open.` : `${c.extra - 15} cards above the usual extra deck limit.`;
+      $("sideAdvice").textContent = c.side <= 15 ? `${15 - c.side} side deck slots open.` : `${c.side - 15} cards above the usual side deck limit.`;
+      els.cardTable.innerHTML = "";
+      const zoneCards = deck ? deck.cards.filter((card) => card.zone === activeDeckZone) : [];
+      if (!zoneCards.length) {
+        els.cardTable.innerHTML = `<tr><td colspan="4" class="muted">No ${activeDeckZone.toLowerCase()} deck cards tracked yet.</td></tr>`;
+        return;
+      }
+      zoneCards.forEach((card) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><span>${escapeHtml(card.name)}</span></td>
+          <td><span class="pill">${card.zone}</span></td>
+          <td class="qty">${card.qty}</td>
+          <td><button class="danger" aria-label="Remove ${escapeHtml(card.name)}">Remove</button></td>
+        `;
+        row.querySelector("button").addEventListener("click", () => removeCard(card));
+        els.cardTable.appendChild(row);
+      });
+    }
+
+    function drawTestHand() {
+      const deck = activeDeck();
+      const pool = mainDeckPool(deck);
+      currentHand = shuffle(pool).slice(0, 5);
+      renderTestHand();
+    }
+
+    function clearTestHand() {
+      currentHand = [];
+      renderTestHand();
+    }
+
+    function renderTestHand() {
+      const deck = activeDeck();
+      const pool = mainDeckPool(deck);
+      els.handSource.textContent = `${pool.length} main deck card${pool.length === 1 ? "" : "s"} available`;
+      els.testHandGrid.innerHTML = "";
+      if (!deck) {
+        els.handStatus.textContent = "No deck selected";
+        els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>No deck selected</strong>Select a deck from the tracker to draw a test hand.</div>`;
+        return;
+      }
+      if (pool.length < 5) {
+        els.handStatus.textContent = "Need 5 Main Deck cards";
+        els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>Not enough cards</strong>Add at least 5 Main Deck cards to draw an opening hand.</div>`;
+        return;
+      }
+      if (!currentHand.length) {
+        els.handStatus.textContent = "Ready to draw";
+        els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>Opening hand test</strong>Draw a randomized 5-card hand from the selected deck.</div>`;
+        return;
+      }
+      els.handStatus.textContent = "5 cards drawn";
+      currentHand.forEach((card, index) => {
+        const item = document.createElement("div");
+        item.className = "hand-card";
+        item.innerHTML = `
+          <div class="hand-card-top">
+            <span class="hand-index">Card ${index + 1}</span>
+          </div>
+          <div class="hand-card-name">
+            <strong>${escapeHtml(card.name)}</strong>
+          </div>
+        `;
+        els.testHandGrid.appendChild(item);
+      });
+    }
+
+    function mainDeckPool(deck) {
+      if (!deck) return [];
+      const pool = [];
+      deck.cards.filter((card) => card.zone === "Main").forEach((card) => {
+        const qty = Math.max(0, Math.floor(Number(card.qty || 0)));
+        for (let index = 0; index < qty; index++) {
+          pool.push({ name: card.name, passcode: card.passcode || "" });
+        }
+      });
+      return pool;
+    }
+
+    function shuffle(cards) {
+      const copy = cards.slice();
+      for (let index = copy.length - 1; index > 0; index--) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
+      }
+      return copy;
+    }
+
+    function renderProbability() {
+      const deckSize = clampInt(els.probDeckSize.value, 1, 999);
+      const targets = clampInt(els.probTargets.value, 0, deckSize);
+      const draws = clampInt(els.probDraws.value, 1, deckSize);
+      const atLeast = clampInt(els.probAtLeast.value, 1, draws);
+      const targetsB = clampInt(els.probTargetsB.value, 0, Math.max(0, deckSize - targets));
+      const mode = els.probMode.value;
+      let probability = 0;
+      let summary = "";
+
+      if (mode === "brick") {
+        probability = hyper(deckSize, targets, draws, 0);
+        summary = `Chance to avoid all ${targets} target copies`;
+      } else if (mode === "both") {
+        probability = probabilityBoth(deckSize, targets, targetsB, draws);
+        summary = `Chance to open at least 1 target A and 1 target B`;
+      } else {
+        for (let hits = atLeast; hits <= Math.min(targets, draws); hits++) {
+          probability += hyper(deckSize, targets, draws, hits);
+        }
+        summary = `Chance to open at least ${atLeast} of ${targets} targets`;
+      }
+
+      els.probValue.textContent = `${(probability * 100).toFixed(2)}%`;
+      els.probSummary.textContent = summary;
+      els.probDetail.textContent = `${draws} cards drawn from ${deckSize}; exact no-replacement calculation.`;
+    }
+
+    function hyper(population, successStates, draws, successes) {
+      if (successes > successStates || successes > draws) return 0;
+      if (draws - successes > population - successStates) return 0;
+      return combination(successStates, successes) * combination(population - successStates, draws - successes) / combination(population, draws);
+    }
+
+    function probabilityBoth(deckSize, targetsA, targetsB, draws) {
+      let total = 0;
+      for (let a = 1; a <= Math.min(targetsA, draws); a++) {
+        for (let b = 1; b <= Math.min(targetsB, draws - a); b++) {
+          const other = draws - a - b;
+          const neutral = deckSize - targetsA - targetsB;
+          if (other >= 0 && other <= neutral) {
+            total += combination(targetsA, a) * combination(targetsB, b) * combination(neutral, other) / combination(deckSize, draws);
+          }
+        }
+      }
+      return total;
+    }
+
+    function combination(n, k) {
+      if (k < 0 || k > n) return 0;
+      k = Math.min(k, n - k);
+      let result = 1;
+      for (let i = 1; i <= k; i++) {
+        result = result * (n - k + i) / i;
+      }
+      return result;
+    }
+
+    function clampInt(value, min, max) {
+      const num = Math.floor(Number(value));
+      if (!Number.isFinite(num)) return min;
+      return Math.max(min, Math.min(max, num));
+    }
+
+    function saveNote() {
+      const body = $("matchupText").value.trim();
+      if (!body) return;
+      if (editingNoteId) {
+        const note = state.notes.find((item) => item.id === editingNoteId);
+        if (note) Object.assign(note, { body, updatedAt: new Date().toISOString() });
+      } else {
+        state.notes.unshift({ id: uid("note"), body, deckId: selectedDeckId, updatedAt: new Date().toISOString() });
+      }
+      editingNoteId = null;
+      clearNoteForm(false);
+      persist("Note saved.");
+      renderNotes();
+    }
+
+    function clearNoteForm(clearId = true) {
+      if (clearId) editingNoteId = null;
+      $("matchupText").value = "";
+    }
+
+    function renderNotes() {
+      els.notesList.innerHTML = "";
+      const notes = state.notes.filter((note) => !selectedDeckId || !note.deckId || note.deckId === selectedDeckId);
+      if (!notes.length) {
+        els.notesList.innerHTML = `<div class="muted">No notes yet.</div>`;
+        return;
+      }
+      notes.forEach((note) => {
+        const item = document.createElement("div");
+        item.className = "note-item";
+        item.innerHTML = `
+          <div class="note-body">${escapeHtml(note.body)}</div>
+          <div class="row" style="margin-top: 10px;"><button>Edit</button><button class="danger">Delete</button></div>
+        `;
+        item.querySelector("button").addEventListener("click", () => {
+          editingNoteId = note.id;
+          $("matchupText").value = note.body;
+        });
+        item.querySelector(".danger").addEventListener("click", () => {
+          state.notes = state.notes.filter((entry) => entry.id !== note.id);
+          persist("Note deleted.");
+          renderNotes();
+        });
+        els.notesList.appendChild(item);
+      });
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          if (file.name.toLowerCase().endsWith(".ydk")) {
+            importYdkDeck(reader.result, file.name);
+            return;
+          }
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed.decks)) throw new Error("Invalid data");
+          state.decks = parsed.decks || [];
+          state.notes = parsed.notes || [];
+          state.watch = parsed.watch || [];
+          selectedDeckId = state.decks[0]?.id || null;
+          currentHand = [];
+          persist("Data imported.");
+          render();
+        } catch {
+          persist("Import failed.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    function importYdkDeck(text, fileName) {
+      const deck = {
+        id: uid("deck"),
+        name: cleanDeckName(fileName),
+        cards: []
+      };
+      let zone = "Main";
+      text.split(/\r?\n/).forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#created by")) return;
+        if (line === "#main") {
+          zone = "Main";
+          return;
+        }
+        if (line === "#extra") {
+          zone = "Extra";
+          return;
+        }
+        if (line === "!side") {
+          zone = "Side";
+          return;
+        }
+        if (line.startsWith("#")) return;
+        if (!/^\d+$/.test(line)) return;
+        addImportedCard(deck.cards, line, zone);
+      });
+      if (!deck.cards.length) throw new Error("No YDK cards found");
+      sortCards(deck.cards);
+      state.decks.push(deck);
+      selectedDeckId = deck.id;
+      currentHand = [];
+      persist("YDK deck imported. Resolving card names from passcodes...");
+      render();
+      resolveYdkNames(deck.id);
+    }
+
+    function addImportedCard(cards, passcode, zone) {
+      const name = passcodeName(passcode);
+      const existing = cards.find((card) => card.passcode === passcode && card.zone === zone);
+      if (existing) existing.qty += 1;
+      else cards.push({ name, passcode, qty: 1, zone });
+    }
+
+    function cleanDeckName(fileName) {
+      return fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim() || "Imported YDK Deck";
+    }
+
+    async function resolveYdkNames(deckId) {
+      const deck = state.decks.find((item) => item.id === deckId);
+      if (!deck) return;
+      const cache = loadCardNameCache();
+      const unresolved = [];
+      deck.cards.forEach((card) => {
+        if (!card.passcode) return;
+        if (cache[card.passcode]) {
+          card.name = cache[card.passcode];
+        } else {
+          unresolved.push(card.passcode);
+        }
+      });
+      if (!unresolved.length) {
+        sortCards(deck.cards);
+        persist("YDK card names resolved from cache.");
+        render();
+        return;
+      }
+
+      try {
+        const namesById = await fetchNamesByPasscode(Array.from(new Set(unresolved)));
+        let resolved = 0;
+        Array.from(new Set(unresolved)).forEach((passcode) => {
+          const name = namesById[passcode];
+          if (name) {
+            cache[passcode] = name;
+            resolved += 1;
+          }
+        });
+        saveCardNameCache(cache);
+        deck.cards.forEach((card) => {
+          if (card.passcode && cache[card.passcode]) card.name = cache[card.passcode];
+        });
+        sortCards(deck.cards);
+        persist(`Resolved ${resolved} card name${resolved === 1 ? "" : "s"} from YDK passcodes.`);
+        render();
+      } catch {
+        persist("YDK imported, but online name resolution failed. Official DB links still search by passcode.");
+      }
+    }
+
+    async function fetchNamesByPasscode(passcodes) {
+      const namesById = {};
+      for (const chunk of chunkList(passcodes, 30)) {
+        const response = await fetch(`${CARD_INFO_API}?id=${encodeURIComponent(chunk.join(","))}`);
+        if (!response.ok) continue;
+        const payload = await response.json();
+        Object.assign(namesById, buildNameIndex(payload.data || []));
+      }
+      return namesById;
+    }
+
+    function buildNameIndex(cards) {
+      const namesById = {};
+      cards.forEach((card) => {
+        if (card.id) namesById[String(card.id)] = card.name;
+        (card.card_images || []).forEach((image) => {
+          if (image.id) namesById[String(image.id)] = card.name;
+        });
+      });
+      return namesById;
+    }
+
+    function chunkList(items, size) {
+      const chunks = [];
+      for (let index = 0; index < items.length; index += size) {
+        chunks.push(items.slice(index, index + size));
+      }
+      return chunks;
+    }
+
+    function loadCardNameCache() {
+      try {
+        return JSON.parse(localStorage.getItem(CARD_CACHE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCardNameCache(cache) {
+      localStorage.setItem(CARD_CACHE_KEY, JSON.stringify(cache));
+    }
+
+    function passcodeName(passcode) {
+      const cache = loadCardNameCache();
+      return cache[passcode] || `Resolving ${passcode}`;
+    }
+
+    function isPasscodePlaceholder(name) {
+      return /^Resolving \d+$/.test(name) || /^Passcode \d+$/.test(name);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    render();
+  </script>
+</body>
+</html>

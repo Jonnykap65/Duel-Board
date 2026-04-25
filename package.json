@@ -1,0 +1,44 @@
+{
+  "name": "yugioh-tools",
+  "version": "1.0.0",
+  "description": "Portable desktop wrapper for the Yu-Gi-Oh! tools dashboard.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "start:widget": "electron . --widget",
+    "dist": "electron-builder --win portable",
+    "dist:dir": "electron-builder --win dir"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
+    "png-to-ico": "^3.0.1",
+    "pngjs": "^7.0.0"
+  },
+  "build": {
+    "appId": "local.yugioh.tools",
+    "productName": "Yu-Gi-Oh Tools",
+    "files": [
+      "index.html",
+      "main.js",
+      "assets/**/*",
+      "build/icon.ico"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "YuGiOh-Tools-Portable.exe"
+    }
+  }
+}
