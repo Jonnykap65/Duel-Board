@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050913">
   <title>Duel Board - Yu-Gi-Oh! Tools</title>
   <style>
     :root {
       color-scheme: dark;
       --bg: #050913;
-      --panel: rgba(10, 18, 34, 0.82);
+      --panel: rgba(8, 17, 32, 0.90);
       --panel-strong: rgba(12, 24, 46, 0.94);
       --line: rgba(147, 202, 255, 0.20);
       --line-hot: rgba(40, 215, 255, 0.66);
@@ -20,24 +21,40 @@
       --gold: #f6c15c;
       --green: #45dd98;
       --danger: #ff6b6b;
-      --shadow: 0 22px 70px rgba(0, 0, 0, 0.52);
+      --shadow: 0 16px 44px rgba(0, 0, 0, 0.34);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--text);
       background:
-        linear-gradient(180deg, rgba(4, 16, 36, 0.50), rgba(3, 8, 20, 0.95)),
-        radial-gradient(circle at 76% 12%, rgba(40, 215, 255, 0.16), transparent 32%),
-        radial-gradient(circle at 12% 86%, rgba(47, 140, 255, 0.18), transparent 34%),
+        linear-gradient(180deg, rgba(3, 13, 28, 0.62), rgba(3, 8, 20, 0.96)),
         url("assets/duel-dashboard-bg.png") center / cover fixed,
         var(--bg);
       overflow-x: hidden;
     }
+
+    .skip-link {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 10;
+      transform: translateY(-150%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 14px;
+      border-radius: 6px;
+    }
+
+    .skip-link:focus-visible { transform: translateY(0); }
 
     button, input, textarea, select {
       font: inherit;
@@ -57,6 +74,8 @@
       justify-content: center;
       gap: 8px;
       transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(40, 215, 255, 0.18);
     }
 
     button:hover, .button-link:hover {
@@ -71,8 +90,14 @@
     }
 
     button.danger {
-      border-color: rgba(255, 107, 107, 0.42);
+      border-color: transparent;
+      background: transparent;
       color: #ffd7d7;
+    }
+
+    button.danger:hover {
+      border-color: rgba(255, 107, 107, 0.52);
+      background: rgba(255, 107, 107, 0.09);
     }
 
     input, textarea, select {
@@ -92,38 +117,46 @@
       line-height: 1.45;
     }
 
-    input:focus, textarea:focus, select:focus {
+    input:focus-visible, textarea:focus-visible, select:focus-visible {
       border-color: var(--cyan);
       box-shadow: 0 0 0 3px rgba(40, 215, 255, 0.12);
     }
 
+    button:focus-visible, .button-link:focus-visible, .deck-item:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
     .app {
-      width: min(1480px, calc(100vw - 28px));
+      width: min(1440px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 22px 0 34px;
+      padding: 18px 0 34px;
     }
 
     .topbar {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 18px;
-      align-items: end;
-      margin-bottom: 18px;
+      align-items: center;
+      margin-bottom: 16px;
     }
 
     .brand h1 {
       margin: 0;
-      font-size: clamp(2rem, 4.4vw, 5rem);
-      line-height: 0.95;
+      font-size: clamp(2.4rem, 4vw, 3.8rem);
+      line-height: 1;
       letter-spacing: 0;
       text-transform: uppercase;
-      text-shadow: 0 0 32px rgba(40, 215, 255, 0.46);
+      text-shadow: 0 0 28px rgba(40, 215, 255, 0.34);
+      text-wrap: balance;
     }
 
     .brand p {
       margin: 10px 0 0;
       color: var(--muted);
       max-width: 760px;
+      line-height: 1.45;
+      text-wrap: pretty;
     }
 
     .source-strip {
@@ -133,10 +166,14 @@
       justify-content: flex-end;
     }
 
+    .source-strip .button-link {
+      background: rgba(8, 17, 32, 0.58);
+    }
+
     .layout {
       display: grid;
-      grid-template-columns: 360px minmax(0, 1fr) 380px;
-      gap: 14px;
+      grid-template-columns: 340px minmax(0, 1fr) 360px;
+      gap: 12px;
       align-items: start;
     }
 
@@ -144,7 +181,7 @@
       border: 1px solid var(--line);
       background: var(--panel);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      backdrop-filter: blur(14px);
       border-radius: 8px;
       overflow: hidden;
     }
@@ -154,20 +191,20 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(90deg, rgba(47, 140, 255, 0.20), rgba(40, 215, 255, 0.06));
+      background: rgba(47, 140, 255, 0.10);
     }
 
     .panel-header h2, .panel-header h3 {
       margin: 0;
       font-size: 0.95rem;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
     .panel-body {
-      padding: 16px;
+      padding: 14px;
     }
 
     .stack {
@@ -188,19 +225,23 @@
     .center-tabs {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      gap: 4px;
       margin-bottom: 14px;
+      padding: 4px;
+      border-radius: 8px;
+      background: rgba(4, 7, 16, 0.58);
     }
 
     .center-tab {
       color: var(--muted);
-      border-color: rgba(255, 255, 255, 0.12);
+      border-color: transparent;
+      background: transparent;
     }
 
     .center-tab.active {
       color: var(--text);
-      border-color: var(--cyan);
-      background: linear-gradient(135deg, rgba(40, 215, 255, 0.20), rgba(47, 140, 255, 0.18));
+      border-color: rgba(40, 215, 255, 0.42);
+      background: rgba(40, 215, 255, 0.12);
     }
 
     .center-view {
@@ -233,16 +274,17 @@
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 0;
+      border-block: 1px solid var(--line);
     }
 
     .metric {
-      border: 1px solid var(--line);
-      background: rgba(4, 7, 16, 0.56);
-      border-radius: 8px;
-      padding: 12px;
-      min-height: 86px;
+      border-right: 1px solid var(--line);
+      padding: 12px 10px;
+      min-height: 78px;
     }
+
+    .metric:last-child { border-right: 0; }
 
     .metric b {
       display: block;
@@ -270,21 +312,54 @@
       padding: 10px;
     }
 
+    .card-row {
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      background: transparent;
+      padding: 10px 0;
+    }
+
+    .card-row:last-child { border-bottom: 0; }
+
     .deck-item {
-      cursor: pointer;
+      padding: 0;
     }
 
     .deck-item-header {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
-      align-items: start;
+      align-items: stretch;
+    }
+
+    .deck-select {
+      min-width: 0;
+      min-height: 54px;
+      justify-content: flex-start;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 3px;
+      padding: 10px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+    }
+
+    .deck-select:hover {
+      border-color: transparent;
+      background: rgba(40, 215, 255, 0.07);
+      transform: none;
     }
 
     .deck-remove {
       min-height: 30px;
+      align-self: center;
+      margin-right: 6px;
       padding: 0 9px;
       font-size: 0.78rem;
+      border-color: transparent;
+      background: transparent;
     }
 
     .deck-item.active {
@@ -328,6 +403,12 @@
       border-collapse: collapse;
       overflow: hidden;
       border-radius: 8px;
+    }
+
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
     }
 
     .card-table th, .card-table td {
@@ -400,10 +481,8 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(4, 7, 16, 0.48);
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--line);
     }
 
     .hand-buttons {
@@ -513,6 +592,31 @@
       font-size: 0.86rem;
     }
 
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .field > span {
+      line-height: 1.2;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .about-copy {
       display: grid;
       gap: 10px;
@@ -570,12 +674,36 @@
       .app {
         width: 100%;
         max-width: 100vw;
-        padding: 22px 7px 34px;
+        padding: 14px 10px calc(28px + env(safe-area-inset-bottom));
       }
 
-      .topbar, .layout, .right-col, .metric-grid, .grid-2, .grid-3 {
+      .topbar, .layout, .grid-2, .grid-3 {
         grid-template-columns: 1fr;
       }
+
+      .topbar { gap: 14px; }
+
+      .brand h1 { font-size: 2.35rem; }
+
+      .source-strip {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .source-strip .button-link { width: 100%; }
+
+      .left-col, .right-col { display: contents; }
+
+      .left-col > :nth-child(1) { order: 1; }
+      .workspace-panel { order: 2; }
+      .right-col > :nth-child(1) { order: 3; }
+      .right-col > :nth-child(2) { order: 4; }
+      .left-col > :nth-child(2) { order: 5; }
+      .left-col > :nth-child(3) { order: 6; }
+
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
 
       .hand-grid {
         grid-template-columns: 1fr;
@@ -599,11 +727,33 @@
         justify-content: flex-start;
       }
 
+      .panel-header h2, .panel-header h3 { font-size: 0.9rem; }
+
+      .hand-actions { align-items: stretch; }
+
+      .hand-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .hand-buttons .primary { grid-column: 1 / -1; }
+
+      .hand-status { justify-content: flex-start; }
+
+      .zone-tab { padding-inline: 8px; }
+
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      button, .button-link { transition: none; }
     }
   </style>
 </head>
 <body>
-  <main class="app">
+  <a class="skip-link" href="#workspace">Skip to Deck Workspace</a>
+  <main class="app" id="workspace">
     <header class="topbar">
       <div class="brand">
         <h1>Duel Board</h1>
@@ -618,7 +768,7 @@
     </header>
 
     <section class="layout">
-      <aside class="stack">
+      <aside class="stack left-col" aria-label="Deck management and reference">
         <section class="panel">
           <div class="panel-header">
             <h2>Deck Tracker</h2>
@@ -626,16 +776,17 @@
           </div>
           <div class="panel-body stack">
             <div class="row">
-              <input id="newDeckName" placeholder="Deck name">
-              <button class="primary" id="addDeckBtn">Add</button>
+              <label class="sr-only" for="newDeckName">Deck Name</label>
+              <input id="newDeckName" name="deck-name" placeholder="Deck name…" autocomplete="off">
+              <button class="primary" id="addDeckBtn" type="button">Add Deck</button>
             </div>
             <div class="deck-list" id="deckList"></div>
             <div class="divider"></div>
-            <button id="seedBtn">Load Sample Deck</button>
+            <button id="seedBtn" type="button">Load Sample Deck</button>
             <label class="button-link" for="importFile">Import JSON / YDK</label>
-            <input id="importFile" type="file" accept="application/json,.json,.ydk" hidden>
+            <input id="importFile" name="deck-import" type="file" accept="application/json,.json,.ydk" hidden>
             <div class="tiny">YDK imports create a new deck from passcodes and resolve card names when online lookup is available.</div>
-            <div class="status" id="deckStatus"></div>
+            <div class="status" id="deckStatus" aria-live="polite"></div>
           </div>
         </section>
 
@@ -678,18 +829,18 @@
         </section>
       </aside>
 
-      <section class="panel">
+      <section class="panel workspace-panel">
         <div class="panel-header">
           <h2 id="activeDeckTitle">No Deck Selected</h2>
           <span class="pill" id="deckTotals">Main 0 / Extra 0 / Side 0</span>
         </div>
         <div class="panel-body">
           <div class="center-tabs" role="tablist" aria-label="Deck tools">
-            <button class="center-tab active" data-center-view="deckEditorView">Deck</button>
-            <button class="center-tab" data-center-view="testHandView">Test Hand</button>
+            <button class="center-tab active" id="deckTab" data-center-view="deckEditorView" type="button" role="tab" aria-selected="true" aria-controls="deckEditorView">Deck</button>
+            <button class="center-tab" id="testHandTab" data-center-view="testHandView" type="button" role="tab" aria-selected="false" aria-controls="testHandView">Test Hand</button>
           </div>
 
-          <div class="center-view active" id="deckEditorView">
+          <div class="center-view active" id="deckEditorView" role="tabpanel" aria-labelledby="deckTab">
             <div class="metric-grid">
               <div class="metric"><b id="mainCount">0</b><span>Main Deck</span></div>
               <div class="metric"><b id="extraCount">0</b><span>Extra Deck</span></div>
@@ -698,35 +849,38 @@
             </div>
             <div class="divider"></div>
             <div class="zone-tabs" role="tablist" aria-label="Deck zones">
-              <button class="zone-tab active" data-zone="Main">Main Deck</button>
-              <button class="zone-tab" data-zone="Extra">Extra Deck</button>
-              <button class="zone-tab" data-zone="Side">Side Deck</button>
+              <button class="zone-tab active" data-zone="Main" type="button" role="tab" aria-selected="true">Main Deck</button>
+              <button class="zone-tab" data-zone="Extra" type="button" role="tab" aria-selected="false">Extra Deck</button>
+              <button class="zone-tab" data-zone="Side" type="button" role="tab" aria-selected="false">Side Deck</button>
             </div>
             <div class="grid-3">
-              <input id="cardName" placeholder="Card name">
-              <input id="cardQty" type="number" min="1" max="3" value="1" aria-label="Quantity">
-              <input id="activeZoneLabel" value="Main Deck" aria-label="Active deck zone" readonly>
+              <label class="field"><span>Card Name</span><input id="cardName" name="card-name" placeholder="Card name…" autocomplete="off"></label>
+              <label class="field"><span>Quantity</span><input id="cardQty" name="card-quantity" type="number" inputmode="numeric" min="1" max="3" value="1" autocomplete="off"></label>
+              <label class="field"><span>Deck Zone</span><input id="activeZoneLabel" name="active-zone" value="Main Deck" readonly></label>
             </div>
             <div class="row" style="margin-top: 10px;">
-              <button class="primary" id="addCardBtn">Add Card</button>
-              <button id="clearDeckBtn" class="danger">Clear Active Deck</button>
+              <button class="primary" id="addCardBtn" type="button">Add Card</button>
+              <button id="clearDeckBtn" class="danger" type="button">Clear Active Deck</button>
             </div>
             <div class="divider"></div>
-            <table class="card-table">
-              <thead>
-                <tr><th>Card</th><th>Zone</th><th>Qty</th><th></th></tr>
-              </thead>
-              <tbody id="cardTable"></tbody>
-            </table>
+            <div class="table-scroll">
+              <table class="card-table">
+                <thead>
+                  <tr><th>Card</th><th>Zone</th><th>Qty</th><th><span class="sr-only">Actions</span></th></tr>
+                </thead>
+                <tbody id="cardTable"></tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="center-view" id="testHandView">
+          <div class="center-view" id="testHandView" role="tabpanel" aria-labelledby="testHandTab">
             <div class="hand-actions">
               <div class="hand-buttons">
-                <button class="primary" id="drawHandBtn">Draw 5 Cards</button>
-                <button id="clearHandBtn">Clear Hand</button>
+                <button class="primary" id="drawHandBtn" type="button">Draw Hand</button>
+                <button id="drawCardBtn" type="button">Draw 1 Card</button>
+                <button id="clearHandBtn" type="button">Clear Hand</button>
               </div>
-              <div class="hand-status">
+              <div class="hand-status" aria-live="polite">
                 <span class="pill" id="handSource">Main deck only</span>
                 <span class="pill" id="handStatus">No hand drawn</span>
               </div>
@@ -744,15 +898,15 @@
           </div>
           <div class="panel-body">
             <div class="grid-3">
-              <label>Deck Size<input id="probDeckSize" type="number" min="1" value="40"></label>
-              <label>Copies / Targets<input id="probTargets" type="number" min="0" value="3"></label>
-              <label>Cards Drawn<input id="probDraws" type="number" min="1" value="5"></label>
+              <label class="field"><span>Deck Size</span><input id="probDeckSize" name="probability-deck-size" type="number" inputmode="numeric" min="1" value="40" autocomplete="off"></label>
+              <label class="field"><span>Copies / Targets</span><input id="probTargets" name="probability-targets" type="number" inputmode="numeric" min="0" value="3" autocomplete="off"></label>
+              <label class="field"><span>Cards Drawn</span><input id="probDraws" name="probability-draws" type="number" inputmode="numeric" min="1" value="5" autocomplete="off"></label>
             </div>
             <div class="grid-3" style="margin-top: 12px;">
-              <label>At Least<input id="probAtLeast" type="number" min="1" value="1"></label>
-              <label>Extra Targets<input id="probTargetsB" type="number" min="0" value="0"></label>
-              <label>Mode
-                <select id="probMode">
+              <label class="field"><span>At Least</span><input id="probAtLeast" name="probability-at-least" type="number" inputmode="numeric" min="1" value="1" autocomplete="off"></label>
+              <label class="field"><span>Extra Targets</span><input id="probTargetsB" name="probability-extra-targets" type="number" inputmode="numeric" min="0" value="0" autocomplete="off"></label>
+              <label class="field"><span>Mode</span>
+                <select id="probMode" name="probability-mode" autocomplete="off">
                   <option value="atleast">Open at least N of target A</option>
                   <option value="both">Open target A and target B</option>
                   <option value="brick">Avoid target A</option>
@@ -760,7 +914,7 @@
               </label>
             </div>
             <div class="divider"></div>
-            <div class="prob-result">
+            <div class="prob-result" aria-live="polite">
               <div>
                 <span class="prob-kicker">Opening Odds</span>
                 <div class="muted" id="probSummary">Opening odds</div>
@@ -776,10 +930,11 @@
             <h3>Notes</h3>
           </div>
           <div class="panel-body">
-            <textarea id="matchupText" placeholder="Side plan, choke points, cards to respect, going first/second notes"></textarea>
+            <label class="field" for="matchupText"><span>Deck Notes</span></label>
+            <textarea id="matchupText" name="deck-notes" placeholder="Side plan, choke points, cards to respect, going first/second notes…" autocomplete="off"></textarea>
             <div class="row" style="margin-top: 10px;">
-              <button class="primary" id="saveNoteBtn">Save Note</button>
-              <button id="clearNoteBtn">Clear Form</button>
+              <button class="primary" id="saveNoteBtn" type="button">Save Note</button>
+              <button id="clearNoteBtn" type="button">Clear Form</button>
             </div>
             <div class="divider"></div>
             <div class="notes-list" id="notesList"></div>
@@ -835,9 +990,13 @@
 
     document.querySelectorAll(".center-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        document.querySelectorAll(".center-tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".center-tab").forEach((item) => {
+          item.classList.remove("active");
+          item.setAttribute("aria-selected", "false");
+        });
         document.querySelectorAll(".center-view").forEach((view) => view.classList.remove("active"));
         tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
         $(tab.dataset.centerView).classList.add("active");
       });
     });
@@ -845,8 +1004,12 @@
     document.querySelectorAll(".zone-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
         activeDeckZone = tab.dataset.zone;
-        document.querySelectorAll(".zone-tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".zone-tab").forEach((item) => {
+          item.classList.remove("active");
+          item.setAttribute("aria-selected", "false");
+        });
         tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
         renderActiveDeck();
       });
     });
@@ -857,6 +1020,7 @@
     $("addCardBtn").addEventListener("click", addCardFromForm);
     $("clearDeckBtn").addEventListener("click", clearActiveDeck);
     $("drawHandBtn").addEventListener("click", drawTestHand);
+    $("drawCardBtn").addEventListener("click", drawOneCard);
     $("clearHandBtn").addEventListener("click", clearTestHand);
     $("saveNoteBtn").addEventListener("click", saveNote);
     $("clearNoteBtn").addEventListener("click", clearNoteForm);
@@ -1010,20 +1174,19 @@
         item.className = "deck-item" + (deck.id === selectedDeckId ? " active" : "");
         item.innerHTML = `
           <div class="deck-item-header">
-            <div>
+            <button class="deck-select" type="button" aria-pressed="${deck.id === selectedDeckId}">
               <strong>${escapeHtml(deck.name)}</strong>
               <span class="muted">Main ${c.main} / Extra ${c.extra} / Side ${c.side}</span>
-            </div>
-            <button class="danger deck-remove" aria-label="Remove ${escapeHtml(deck.name)}">Remove</button>
+            </button>
+            <button class="danger deck-remove" type="button" aria-label="Remove ${escapeHtml(deck.name)}">Remove</button>
           </div>
         `;
-        item.addEventListener("click", () => {
+        item.querySelector(".deck-select").addEventListener("click", () => {
           selectedDeckId = deck.id;
           currentHand = [];
           render();
         });
-        item.querySelector(".deck-remove").addEventListener("click", (event) => {
-          event.stopPropagation();
+        item.querySelector(".deck-remove").addEventListener("click", () => {
           removeDeck(deck.id);
         });
         els.deckList.appendChild(item);
@@ -1059,7 +1222,7 @@
           <td><span>${escapeHtml(card.name)}</span></td>
           <td><span class="pill">${card.zone}</span></td>
           <td class="qty">${card.qty}</td>
-          <td><button class="danger" aria-label="Remove ${escapeHtml(card.name)}">Remove</button></td>
+          <td><button class="danger" type="button" aria-label="Remove ${escapeHtml(card.name)}">Remove</button></td>
         `;
         row.querySelector("button").addEventListener("click", () => removeCard(card));
         els.cardTable.appendChild(row);
@@ -1070,6 +1233,18 @@
       const deck = activeDeck();
       const pool = mainDeckPool(deck);
       currentHand = shuffle(pool).slice(0, 5);
+      renderTestHand();
+    }
+
+    function drawOneCard() {
+      const deck = activeDeck();
+      if (!deck) return;
+      const remaining = removeDrawnCards(mainDeckPool(deck), currentHand);
+      if (!remaining.length) {
+        els.handStatus.textContent = "No cards left";
+        return;
+      }
+      currentHand.push(shuffle(remaining).shift());
       renderTestHand();
     }
 
@@ -1088,7 +1263,7 @@
         els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>No deck selected</strong>Select a deck from the tracker to draw a test hand.</div>`;
         return;
       }
-      if (pool.length < 5) {
+      if (pool.length < 5 && !currentHand.length) {
         els.handStatus.textContent = "Need 5 Main Deck cards";
         els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>Not enough cards</strong>Add at least 5 Main Deck cards to draw an opening hand.</div>`;
         return;
@@ -1098,7 +1273,7 @@
         els.testHandGrid.innerHTML = `<div class="hand-empty"><strong>Opening hand test</strong>Draw a randomized 5-card hand from the selected deck.</div>`;
         return;
       }
-      els.handStatus.textContent = "5 cards drawn";
+      els.handStatus.textContent = `${currentHand.length} card${currentHand.length === 1 ? "" : "s"} drawn`;
       currentHand.forEach((card, index) => {
         const item = document.createElement("div");
         item.className = "hand-card";
@@ -1124,6 +1299,15 @@
         }
       });
       return pool;
+    }
+
+    function removeDrawnCards(pool, hand) {
+      const remaining = pool.slice();
+      hand.forEach((drawn) => {
+        const index = remaining.findIndex((card) => card.name === drawn.name && card.passcode === drawn.passcode);
+        if (index >= 0) remaining.splice(index, 1);
+      });
+      return remaining;
     }
 
     function shuffle(cards) {
@@ -1231,7 +1415,7 @@
         item.className = "note-item";
         item.innerHTML = `
           <div class="note-body">${escapeHtml(note.body)}</div>
-          <div class="row" style="margin-top: 10px;"><button>Edit</button><button class="danger">Delete</button></div>
+          <div class="row" style="margin-top: 10px;"><button type="button">Edit Note</button><button class="danger" type="button">Delete Note</button></div>
         `;
         item.querySelector("button").addEventListener("click", () => {
           editingNoteId = note.id;
